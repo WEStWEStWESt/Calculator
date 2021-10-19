@@ -11,6 +11,7 @@ public class SimpleRpnServiceTest {
     //public static final String INVALID_EXPRESSION = "2a + 4 * ( 5 - 5 / 0";
     public static final String SIMPLE_PLUS_EXPRESSION = "2 + 1";
     public static final String COMPLEX_INT_PLUS_EXPRESSION = "21 + 15";
+    public static final String DOUBLE_PLUS_EXPRESSION = "13.66 + 12.0";
     private RpnService service = new SimpleRpnService();
 
     @Test
@@ -30,6 +31,11 @@ public class SimpleRpnServiceTest {
     @Test
     public void testGetRPNComplexIntPlusOperation() {
         verify(COMPLEX_INT_PLUS_EXPRESSION, "21 15 + ");
+    }
+
+    @Test
+    public void testGetRPNDoublePlusOperation() {
+        verify(DOUBLE_PLUS_EXPRESSION, "13.66 12.0 + ");
     }
 
     private void verify(String expression, String expectedValue) {

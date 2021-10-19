@@ -16,17 +16,21 @@ public class SimpleRpnService implements RpnService {
             return INVALID_EXPRESSION_PREFIX + EMPTY_EXPRESSION;
         }
         StringBuilder rpn = new StringBuilder();
+        StringBuilder currentOperand = new StringBuilder();
         char currentOperation = 0;
         for (char symbol : expression.toCharArray()) {
-            if (Character.isDigit(symbol)) {
-                rpn.append(symbol);
+            if (SPACE == symbol) {
+                continue;
             }
             if (Operations.PLUS.symbol == symbol) {
                 currentOperation = symbol;
-                rpn.append(SPACE);
+                rpn.append(currentOperand).append(SPACE);
+                currentOperand = new StringBuilder();
+            } else {
+                currentOperand.append(symbol);
             }
         }
-        rpn.append(SPACE).append(currentOperation).append(SPACE);
+        rpn.append(currentOperand).append(SPACE).append(currentOperation).append(SPACE);
         return rpn.toString();
     }
 }

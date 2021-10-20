@@ -1,5 +1,6 @@
 package com.calculator.core.services;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 import static com.calculator.core.utils.CalculatorConstants.Errors.EMPTY_EXPRESSION;
@@ -12,6 +13,7 @@ public class SimpleRpnServiceTest {
     public static final String SIMPLE_PLUS_EXPRESSION = "2 + 1";
     public static final String COMPLEX_INT_PLUS_EXPRESSION = "21 + 15";
     public static final String DOUBLE_PLUS_EXPRESSION = "13.66 + 12.0";
+    public static final String DOUBLE_PLUS_INVALID_EXPRESSION = "13.66 + 12..0";
     private RpnService service = new SimpleRpnService();
 
     @Test
@@ -36,6 +38,11 @@ public class SimpleRpnServiceTest {
     @Test
     public void testGetRPNDoublePlusOperation() {
         verify(DOUBLE_PLUS_EXPRESSION, "13.66 12.0 + ");
+    }
+
+    @Test
+    public void testGetRPNDoublePlusInvalidOperation(){
+        verify(DOUBLE_PLUS_INVALID_EXPRESSION, INVALID_EXPRESSION_PREFIX + StringUtils.EMPTY);
     }
 
     private void verify(String expression, String expectedValue) {

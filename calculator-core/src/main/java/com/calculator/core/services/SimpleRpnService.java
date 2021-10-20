@@ -1,14 +1,17 @@
 package com.calculator.core.services;
 
+import com.calculator.core.models.Operands;
 import com.calculator.core.models.Operations;
 import org.apache.commons.lang3.StringUtils;
+
+import java.util.regex.Pattern;
 
 import static com.calculator.core.utils.CalculatorConstants.Errors.EMPTY_EXPRESSION;
 import static com.calculator.core.utils.CalculatorConstants.INVALID_EXPRESSION_PREFIX;
 import static com.calculator.core.utils.CalculatorConstants.SPACE;
 
 public class SimpleRpnService implements RpnService {
-
+//"    3..66 + 12.0
     @Override
     public String getRPN(String expression) {
 
@@ -24,6 +27,7 @@ public class SimpleRpnService implements RpnService {
             }
             if (Operations.PLUS.symbol == symbol) {
                 currentOperation = symbol;
+
                 rpn.append(currentOperand).append(SPACE);
                 currentOperand = new StringBuilder();
             } else {

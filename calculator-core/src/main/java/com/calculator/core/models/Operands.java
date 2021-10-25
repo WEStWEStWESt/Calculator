@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 
 public enum Operands {
     INTEGER("^[\\d]+$"),
-    DOUBLE("^[\\d]+[.,][\\d]+$");
+    DOUBLE("^[\\d]+[.,][\\d]+$");//TODO the first part of the number should start from one zero only !!!
 
     private final Pattern pattern;
 

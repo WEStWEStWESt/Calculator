@@ -10,7 +10,7 @@ import static com.calculator.core.utils.CalculatorConstants.INVALID_EXPRESSION_P
 import static com.calculator.core.utils.CalculatorConstants.SPACE;
 
 public class SimpleRpnService implements RpnService {
-    //"    3.6 + 12..0
+
     @Override
     public String getRPN(String expression) {
         if (StringUtils.isBlank(expression)) {
@@ -18,12 +18,19 @@ public class SimpleRpnService implements RpnService {
         }
         StringBuilder rpn = new StringBuilder();
         StringBuilder currentOperand = new StringBuilder();
+        /*
+
+        Deque<Character> operations = new ArrayDeque<>();
+        Deque<String> operands = new ArrayDeque<>();
+
+        */
         char currentOperation = 0;
+        //    2 + 1 - 52
         for (char symbol : expression.toCharArray()) {
             if (SPACE == symbol) {
                 continue;
             }
-            if (Operations.PLUS.symbol == symbol) {
+            if (Operations.isOperation(symbol)) {
                 currentOperation = symbol;
                 String checked = checkOperand(expression, currentOperand);
                 if (isError(checked)) {

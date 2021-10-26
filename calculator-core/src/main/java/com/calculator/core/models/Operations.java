@@ -1,11 +1,22 @@
 package com.calculator.core.models;
 
-public enum Operations {
-    PLUS('+');
+import java.util.stream.Stream;
 
-    public final char symbol;
+public enum Operations {
+    PLUS('+'),
+    MINUS('-');
+
+    private final char symbol;
+
+    public char getSymbol() {
+        return symbol;
+    }
 
     Operations(char symbol) {
         this.symbol = symbol;
+    }
+
+    public static boolean isOperation(char symbol) {
+        return Stream.of(values()).map(Operations::getSymbol).anyMatch(value -> value == symbol);
     }
 }

@@ -1,14 +1,12 @@
 package com.calculator.core.services;
 
-import org.apache.commons.lang3.StringUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.calculator.core.utils.CalculatorConstants.Errors.EMPTY_EXPRESSION;
 import static com.calculator.core.utils.CalculatorConstants.INVALID_EXPRESSION_PREFIX;
 import static org.junit.Assert.*;
 
-public class SimpleRpnServiceTest {
+public class LinearRpnServiceTest {
 
     //public static final String INVALID_EXPRESSION = "2a + 4 * ( 5 - 5 / 0";
     public static final String SIMPLE_PLUS_EXPRESSION = "2 + 1";
@@ -19,7 +17,7 @@ public class SimpleRpnServiceTest {
     public static final String LETTER_PLUS_INVALID_EXPRESSION = "13.66a + 12.0";
     public static final String ZERO_PLUS_INVALID_EXPRESSION = "00.35 + 2";
     public static final String SIMPLE_MINUS_EXPRESSION = "2 - 1";
-    private RpnService service = new SimpleRpnService();
+    private RpnService service = new LinearRpnService();
 
     @Test
     public void testGetRPNEmptyError() {
@@ -35,10 +33,9 @@ public class SimpleRpnServiceTest {
         verify(SIMPLE_MINUS_EXPRESSION, "2 1 - ");
     }
 
-    @Ignore
     @Test
     public void testGetRPNComplexPlusMinusOperation() {
-        verify(COMPLEX_PLUS_MINUS_EXPRESSION, "2 1 - "); // TODO add support complex operations !
+        verify(COMPLEX_PLUS_MINUS_EXPRESSION, "2 1 52 - + ");
     }
 
     @Test
@@ -57,19 +54,19 @@ public class SimpleRpnServiceTest {
     }
 
     @Test
-    public void testGetRPNDoublePlusInvalidOperation(){
+    public void testGetRPNDoublePlusInvalidOperation() {
         verify(DOUBLE_PLUS_INVALID_EXPRESSION,
                 INVALID_EXPRESSION_PREFIX + "Operand '12..0' at position 8 invalid.");
     }
 
     @Test
-    public void testGetRPNLetterPlusInvalidOperation(){
+    public void testGetRPNLetterPlusInvalidOperation() {
         verify(LETTER_PLUS_INVALID_EXPRESSION,
                 INVALID_EXPRESSION_PREFIX + "Operand '13.66a' at position 0 invalid.");
     }
 
     @Test
-    public void testGetRPNZeroPlusInvalidOperation(){
+    public void testGetRPNZeroPlusInvalidOperation() {
         verify(ZERO_PLUS_INVALID_EXPRESSION,
                 INVALID_EXPRESSION_PREFIX + "Operand '00.35' at position 0 invalid.");
     }

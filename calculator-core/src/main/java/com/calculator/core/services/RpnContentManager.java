@@ -1,6 +1,7 @@
 package com.calculator.core.services;
 
 import com.calculator.core.models.Operands;
+import com.calculator.core.models.Operations;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
@@ -12,32 +13,51 @@ import static com.calculator.core.utils.CalculatorConstants.SPACE;
 
 class RpnContentManager {
 
-    final String expression;
-    final StringBuilder rpn;
-    final Deque<Character> operations;
-    final RpnErrorResolver error;
+    private final String expression;
+    private final StringBuilder rpn;
+    private final StringBuilder element;
+    private final Deque<Character> operations;
+    private final RpnErrorResolver error;
 
     RpnContentManager(String expression) {
         this.expression = expression;
         rpn = new StringBuilder();
         operations = new ArrayDeque<>();
         error = new RpnErrorResolver();
+        element = new StringBuilder();
     }
 
-    void toRPN(StringBuilder element) {
-        rpn.append(element).append(SPACE);
-    }
-
-    void resolveOperand(StringBuilder element) {
-        if (Operands.isOperand(element)) {
-            toRPN(element);
-            return;
+    void resolveOperand() {
+        if (hasNoError()) {
+            if (Operands.isOperand(element)) {
+                toRPN();
+                return;
+            }
+            error.resolve(element);
         }
-        error.resolve(element);
     }
 
     void resolveOperation(char operation) {
-        operations.push(operation);
+        if (hasNoError()) {
+            operations.push(operation);
+        }
+    }
+
+    void resolveElement(int code) {
+        if (SPACE == code) {
+            return;
+        }
+        char symbol = (char) code;
+        if (Operations.isOperation(symbol)) {
+            resolveOperand();
+            resolveOperation(symbol);
+        } else {
+            element.append(symbol);
+        }
+    }
+
+    boolean hasNoError() {
+        return !hasError();
     }
 
     boolean hasError() {
@@ -48,16 +68,19 @@ class RpnContentManager {
         return !operations.isEmpty();
     }
 
-    String getError() {
-        return error.get();
-    }
-
     String getRpn() {
-        return rpn.toString();
+        finalizeRpn();
+        return hasError() ? error.get() : rpn.toString();
     }
 
-    void finalizeRpn() {
-        while (hasOperations()) {
+    private void toRPN() {
+        rpn.append(element).append(SPACE);
+        element.setLength(0);
+    }
+
+    private void finalizeRpn() {
+        resolveOperand();
+        while (hasNoError() && hasOperations()) {
             rpn.append(operations.pop()).append(SPACE);
         }
     }
@@ -75,8 +98,7 @@ class RpnContentManager {
         }
 
         void resolve(StringBuilder element) {
-            resolve(String.format(OPERAND_ERROR_FORMAT, element,
-                    expression.indexOf(element.toString())));
+            resolve(OPERAND_ERROR_FORMAT.formatted(element, expression.indexOf(element.toString())));
         }
 
         String get() {

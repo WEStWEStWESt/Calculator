@@ -12,10 +12,10 @@ public class LinearRpnService implements RpnService {
         if (StringUtils.isBlank(expression)) {
             return INVALID_EXPRESSION_PREFIX + EMPTY_EXPRESSION;
         }
-        var content = new RpnContentManager(expression);
+        var content = new RpnContentManager();
         expression.chars()
                 .takeWhile(i -> content.hasNoError())
-                .forEach(content::resolveElement);
+                .forEach(content::resolveSymbol);
         return content.getRpn();
     }
 }

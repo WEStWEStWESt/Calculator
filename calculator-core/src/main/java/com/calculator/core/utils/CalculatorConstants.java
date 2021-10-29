@@ -6,6 +6,7 @@ public final class CalculatorConstants {
     }
 
     public static final String INVALID_EXPRESSION_PREFIX = "Error: ";
+    public static final int INVALID_PRIORITY = 1000;
     public static final char SPACE = ' ';
 
     public static final class Errors {

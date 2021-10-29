@@ -35,7 +35,7 @@ public class LinearRpnServiceTest {
 
     @Test
     public void testGetRPNComplexPlusMinusOperation() {
-        verify(COMPLEX_PLUS_MINUS_EXPRESSION, "2 1 52 - + ");
+        verify(COMPLEX_PLUS_MINUS_EXPRESSION, "2 1 + 52 - ");
     }
 
     @Test
@@ -56,19 +56,19 @@ public class LinearRpnServiceTest {
     @Test
     public void testGetRPNDoublePlusInvalidOperation() {
         verify(DOUBLE_PLUS_INVALID_EXPRESSION,
-                INVALID_EXPRESSION_PREFIX + "Operand '12..0' at position 8 invalid.");
+                INVALID_EXPRESSION_PREFIX + "Operand '12..0' at position 9 invalid.");
     }
 
     @Test
     public void testGetRPNLetterPlusInvalidOperation() {
         verify(LETTER_PLUS_INVALID_EXPRESSION,
-                INVALID_EXPRESSION_PREFIX + "Operand '13.66a' at position 0 invalid.");
+                INVALID_EXPRESSION_PREFIX + "Operand '13.66a' at position 1 invalid.");
     }
 
     @Test
     public void testGetRPNZeroPlusInvalidOperation() {
         verify(ZERO_PLUS_INVALID_EXPRESSION,
-                INVALID_EXPRESSION_PREFIX + "Operand '00.35' at position 0 invalid.");
+                INVALID_EXPRESSION_PREFIX + "Operand '00.35' at position 1 invalid.");
     }
 
     private void verify(String expression, String expectedValue) {

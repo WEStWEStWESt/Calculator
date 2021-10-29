@@ -6,6 +6,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static com.calculator.core.utils.CalculatorConstants.Errors.OPERAND_ERROR_FORMAT;
 import static com.calculator.core.utils.CalculatorConstants.INVALID_EXPRESSION_PREFIX;
@@ -13,46 +14,34 @@ import static com.calculator.core.utils.CalculatorConstants.SPACE;
 
 class RpnContentManager {
 
-    private final String expression;
+    private final AtomicInteger length;
+    private final AtomicInteger position;
     private final StringBuilder rpn;
     private final StringBuilder element;
-    private final Deque<Character> operations;
+    private final Deque<Operations> operations;
     private final RpnErrorResolver error;
 
-    RpnContentManager(String expression) {
-        this.expression = expression;
+    RpnContentManager() {
         rpn = new StringBuilder();
         operations = new ArrayDeque<>();
         error = new RpnErrorResolver();
         element = new StringBuilder();
+        length = new AtomicInteger();
+        position = new AtomicInteger();
     }
 
-    void resolveOperand() {
-        if (hasNoError()) {
-            if (Operands.isOperand(element)) {
-                toRPN();
-                return;
-            }
-            error.resolve(element);
-        }
-    }
-
-    void resolveOperation(char operation) {
-        if (hasNoError()) {
-            operations.push(operation);
-        }
-    }
-
-    void resolveElement(int code) {
+    void resolveSymbol(int code) {
+        length.incrementAndGet();
         if (SPACE == code) {
             return;
         }
         char symbol = (char) code;
-        if (Operations.isOperation(symbol)) {
+        Operations sign = Operations.findOperation(symbol);
+        if (sign.isOperation()) {
             resolveOperand();
-            resolveOperation(symbol);
+            resolveOperation(sign);
         } else {
-            element.append(symbol);
+            resolveElement(symbol);
         }
     }
 
@@ -64,13 +53,40 @@ class RpnContentManager {
         return error.exists();
     }
 
-    boolean hasOperations() {
-        return !operations.isEmpty();
-    }
-
     String getRpn() {
         finalizeRpn();
         return hasError() ? error.get() : rpn.toString();
+    }
+
+    private void resolveOperand() {
+        if (hasNoError()) {
+            if (Operands.isOperand(element)) {
+                toRPN();
+                return;
+            }
+            error.resolve(element);
+        }
+    }
+
+    @SuppressWarnings("ALL")
+    private void resolveOperation(Operations operation) {
+        if (hasNoError()) {
+            while (hasOperations() && operation.hasLowerPriority(operations.peek())){
+                toRpn(operations.pop());
+            }
+            operations.push(operation);
+        }
+    }
+
+    private void resolveElement(char symbol) {
+        if (element.isEmpty()) {
+            position.set(length.get());
+        }
+        element.append(symbol);
+    }
+
+    private boolean hasOperations() {
+        return !operations.isEmpty();
     }
 
     private void toRPN() {
@@ -78,10 +94,14 @@ class RpnContentManager {
         element.setLength(0);
     }
 
+    private void toRpn(Operations sign){
+        rpn.append(sign.getSymbol()).append(SPACE);
+    }
+
     private void finalizeRpn() {
         resolveOperand();
         while (hasNoError() && hasOperations()) {
-            rpn.append(operations.pop()).append(SPACE);
+            toRpn(operations.pop());
         }
     }
 
@@ -98,7 +118,7 @@ class RpnContentManager {
         }
 
         void resolve(StringBuilder element) {
-            resolve(OPERAND_ERROR_FORMAT.formatted(element, expression.indexOf(element.toString())));
+            resolve(OPERAND_ERROR_FORMAT.formatted(element, position.get()));
         }
 
         String get() {

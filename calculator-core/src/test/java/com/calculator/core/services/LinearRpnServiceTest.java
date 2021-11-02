@@ -1,5 +1,6 @@
 package com.calculator.core.services;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import static com.calculator.core.utils.CalculatorConstants.Errors.EMPTY_EXPRESSION;
@@ -17,6 +18,7 @@ public class LinearRpnServiceTest {
     public static final String LETTER_PLUS_INVALID_EXPRESSION = "13.66a + 12.0";
     public static final String ZERO_PLUS_INVALID_EXPRESSION = "00.35 + 2";
     public static final String SIMPLE_MINUS_EXPRESSION = "2 - 1";
+    public static final String PRIORITIZED_EXPRESSION = "1 + 6 / 2 + 3 * 2 - 1 * 0";
     private RpnService service = new LinearRpnService();
 
     @Test
@@ -36,6 +38,12 @@ public class LinearRpnServiceTest {
     @Test
     public void testGetRPNComplexPlusMinusOperation() {
         verify(COMPLEX_PLUS_MINUS_EXPRESSION, "2 1 + 52 - ");
+    }
+
+    @Ignore
+    @Test
+    public void testGetRPNPrioritizedOperations() {
+        verify(PRIORITIZED_EXPRESSION, "1 6 2 / + 3 2 * + 1 0 * - ");
     }
 
     @Test

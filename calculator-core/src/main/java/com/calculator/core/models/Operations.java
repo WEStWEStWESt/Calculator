@@ -7,6 +7,20 @@ import static com.calculator.core.utils.CalculatorConstants.SPACE;
 
 public enum Operations implements Sign {
 
+    LEFT_BRACKET('(', 0){
+        @Override
+        public boolean isBracket() {
+            return true;
+        }
+    },
+
+    RIGHT_BRACKET(')', 0){
+        @Override
+        public boolean isBracket() {
+            return true;
+        }
+    },
+
     PLUS('+', 1) {
         @Override
         public boolean isOperation() {
@@ -14,6 +28,18 @@ public enum Operations implements Sign {
         }
     },
     MINUS('-', 1) {
+        @Override
+        public boolean isOperation() {
+            return true;
+        }
+    },
+    MULTIPLY('*', 2) {
+        @Override
+        public boolean isOperation() {
+            return true;
+        }
+    },
+    DIVIDE('/', 2) {
         @Override
         public boolean isOperation() {
             return true;

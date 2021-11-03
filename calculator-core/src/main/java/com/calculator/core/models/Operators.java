@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 import static com.calculator.core.utils.CalculatorConstants.INVALID_PRIORITY;
 import static com.calculator.core.utils.CalculatorConstants.SPACE;
 
-public enum Operations implements Sign {
+public enum Operators implements Sign {
 
     LEFT_BRACKET('(', 0){
         @Override
@@ -13,14 +13,12 @@ public enum Operations implements Sign {
             return true;
         }
     },
-
     RIGHT_BRACKET(')', 0){
         @Override
         public boolean isBracket() {
             return true;
         }
     },
-
     PLUS('+', 1) {
         @Override
         public boolean isOperation() {
@@ -50,7 +48,7 @@ public enum Operations implements Sign {
     private final char symbol;
     private final int priority;
 
-    Operations(char symbol, int priority) {
+    Operators(char symbol, int priority) {
         this.symbol = symbol;
         this.priority = priority;
     }
@@ -59,7 +57,7 @@ public enum Operations implements Sign {
         return symbol;
     }
 
-    public boolean hasLowerPriority(Operations operation) {
+    public boolean hasLowerPriority(Operators operation) {
         return Integer.compare(this.getPriority(), operation.getPriority()) < 1;
     }
 
@@ -67,9 +65,13 @@ public enum Operations implements Sign {
         return priority;
     }
 
-    public static Operations findOperation(char symbol) {
+    public boolean isOperator(){
+        return isBracket() || isOperation();
+    }
+
+    public static Operators findOperation(char symbol) {
         return Stream.of(values())
-                .filter(operations -> operations.getSymbol() == symbol)
+                .filter(operators -> operators.getSymbol() == symbol)
                 .findAny()
                 .orElse(UNKNOWN);
     }

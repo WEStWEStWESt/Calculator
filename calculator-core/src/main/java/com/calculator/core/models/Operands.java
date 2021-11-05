@@ -4,8 +4,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public enum Operands {
-    INTEGER("^[\\d]+$"),
-    DOUBLE("^([0]|[1-9]+)[.,][\\d]+$");
+    INTEGER("^[\\d]+$|^$"),
+    DOUBLE("^([0]|[1-9]+)[.,][\\d]+$|^$");
 
     private final Pattern pattern;
 

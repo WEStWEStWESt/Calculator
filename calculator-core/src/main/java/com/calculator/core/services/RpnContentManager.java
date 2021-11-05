@@ -39,7 +39,7 @@ class RpnContentManager {
         }
         char symbol = (char) code;
         Operators sign = Operators.findOperation(symbol);
-        if (sign.isOperation()) {
+        if (sign.isOperator()) {
             resolveOperand();
             resolveOperator(sign);
         } else {
@@ -70,7 +70,7 @@ class RpnContentManager {
         }
     }
 
-    //  2 * ( 1 + 2)
+    //      2 + ( 1 + 2 )
     @SuppressWarnings("ALL")
     private void resolveOperator(Operators operator) {
         if (hasNoError()) {
@@ -79,11 +79,16 @@ class RpnContentManager {
                     this.operators.push(operator);
                 } else if (RIGHT_BRACKET == operator) {
 
-                    //TODO delete LEFT_BRACKET from operators
+                    //TODO optimized method! (while & toRpn not fix)!!!!! CALL Alexey !!!!!!!!!
+                    // инициализация локальных переменных в условии While or If.
 
-                    while (hasOperators() && LEFT_BRACKET != operators.peek()) {
-                        toRpn(operators.pop());
+                    operator = operators.pop();
+
+                    while (hasOperators() && LEFT_BRACKET != operator) {
+                        toRpn(operator);
+                        operator = operators.pop();
                     }
+
                 }
             } else {
                 while (hasOperators() && operator.hasLowerPriority(this.operators.peek())) {
@@ -106,7 +111,7 @@ class RpnContentManager {
     }
 
     private void toRpn() {
-        rpn.append(element).append(SPACE);
+        rpn.append(element).append(element.isEmpty() ? StringUtils.EMPTY : SPACE);
         element.setLength(0);
     }
 

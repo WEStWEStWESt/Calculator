@@ -19,6 +19,7 @@ public class LinearRpnServiceTest {
     public static final String ZERO_PLUS_INVALID_EXPRESSION = "00.35 + 2";
     public static final String SIMPLE_MINUS_EXPRESSION = "2 - 1";
     public static final String PRIORITIZED_EXPRESSION = "1 + 6 / 2 + 3 * 2 - 1 * 0";
+    public static final String PRIORITIZED_BRACKET_EXPRESSION = "2 + (1 + 2)";
     private RpnService service = new LinearRpnService();
 
     @Test
@@ -44,6 +45,11 @@ public class LinearRpnServiceTest {
     @Test
     public void testGetRPNPrioritizedOperations() {
         verify(PRIORITIZED_EXPRESSION, "1 6 2 / + 3 2 * + 1 0 * - ");
+    }
+
+    @Test
+    public void testGetRPNPrioritizedBracketOperations() {
+        verify(PRIORITIZED_BRACKET_EXPRESSION, "2 1 2 + + ");
     }
 
     @Test

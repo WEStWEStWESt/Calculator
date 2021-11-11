@@ -16,6 +16,8 @@ public final class CalculatorConstants {
 
         public static final String EMPTY_EXPRESSION = "Expression is empty.";
 
+        public static final String OPERATIONS_NOT_AGREED = "Operations are not agreed.";
+
         public static final String OPERAND_ERROR_FORMAT = "Operand '%s' at position %s invalid.";
 
     }

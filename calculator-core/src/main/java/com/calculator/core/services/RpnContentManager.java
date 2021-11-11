@@ -8,9 +8,9 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.calculator.core.models.Operators.LEFT_BRACKET;
-import static com.calculator.core.models.Operators.RIGHT_BRACKET;
+import static com.calculator.core.models.Operators.*;
 import static com.calculator.core.utils.CalculatorConstants.Errors.OPERAND_ERROR_FORMAT;
+import static com.calculator.core.utils.CalculatorConstants.Errors.OPERATIONS_NOT_AGREED;
 import static com.calculator.core.utils.CalculatorConstants.INVALID_EXPRESSION_PREFIX;
 import static com.calculator.core.utils.CalculatorConstants.SPACE;
 
@@ -70,31 +70,36 @@ class RpnContentManager {
         }
     }
 
-    //      2 + ( 1 + 2 )
+    /*Формализую пару моментов по решению конкретной задачи:
+1. Декомпозируем формальное описание задачи на конкретную цепочку действий для ее реализации.
+2. Составляем список классов:
+    2.1 Определяем уже написанные классы, которые могут быть затронуты решением.
+    2.2 А так же новые классы которые можно описать.
+3. При написании реализации конкретных методов:
+    3.1 Если метод уже реализован - изолировать уже рабочий код (if / else - самый простой вариант).
+    3.2 Для всех методов перед написанием кода определяем контекст метода - т.е. какие данные приходят в метод и какие возвращаются из него. 	         Это нужно для того, что бы избежать ненужного кода, ненужных проверок и т.д.
+    3.3 После описания всех изменений - пробуем избавиться от повторений и возможно ненужных проверок, связанных с изоляцией (тут нужно быть осторожным, так как изменения могут сломать существующий код).
+4. Тестирование изменений на новый и существующий функционал (регрессия)*/
+    //     - 2 + 1
+//     3 + ( -1 - ---2 )
     @SuppressWarnings("ALL")
     private void resolveOperator(Operators operator) {
         if (hasNoError()) {
-            if (operator.isBracket()) {
-                if (LEFT_BRACKET == operator) {
-                    this.operators.push(operator);
-                } else if (RIGHT_BRACKET == operator) {
-
-                    //TODO optimized method! (while & toRpn not fix)!!!!! CALL Alexey !!!!!!!!!
-                    // инициализация локальных переменных в условии While or If.
-
-                    operator = operators.pop();
-
-                    while (hasOperators() && LEFT_BRACKET != operator) {
-                        toRpn(operator);
-                        operator = operators.pop();
-                    }
-
+            if (operator == MINUS && (rpn.isEmpty() || !operators.isEmpty()))
+                if (operators.peek() == UNARY_MINUS) {
+                    error.resolve(OPERATIONS_NOT_AGREED);
+                } else {
+                    operator = UNARY_MINUS;
+                }
+            if (operator == RIGHT_BRACKET) {
+                while (hasOperators() && (operator = operators.pop()) != LEFT_BRACKET) {
+                    toRpn(operator);
                 }
             } else {
-                while (hasOperators() && operator.hasLowerPriority(this.operators.peek())) {
-                    toRpn(this.operators.pop());
+                while (operator.isOperation() && hasOperators() && operator.hasLowerPriority(operators.peek())) {
+                    toRpn(operators.pop());
                 }
-                this.operators.push(operator);
+                operators.push(operator);
             }
         }
     }

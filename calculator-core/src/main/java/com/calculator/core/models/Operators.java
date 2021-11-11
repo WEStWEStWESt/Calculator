@@ -7,13 +7,13 @@ import static com.calculator.core.utils.CalculatorConstants.SPACE;
 
 public enum Operators implements Sign {
 
-    LEFT_BRACKET('(', 0){
+    LEFT_BRACKET('(', 0) {
         @Override
         public boolean isBracket() {
             return true;
         }
     },
-    RIGHT_BRACKET(')', 0){
+    RIGHT_BRACKET(')', 0) {
         @Override
         public boolean isBracket() {
             return true;
@@ -43,6 +43,12 @@ public enum Operators implements Sign {
             return true;
         }
     },
+    UNARY_MINUS('U', 10) {
+        @Override
+        public boolean isOperation() {
+            return true;
+        }
+    },
     UNKNOWN(SPACE, INVALID_PRIORITY);
 
     private final char symbol;
@@ -65,7 +71,7 @@ public enum Operators implements Sign {
         return priority;
     }
 
-    public boolean isOperator(){
+    public boolean isOperator() {
         return isBracket() || isOperation();
     }
 

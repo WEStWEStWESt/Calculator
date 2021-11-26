@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 import static com.calculator.core.utils.CalculatorConstants.INVALID_PRIORITY;
 import static com.calculator.core.utils.CalculatorConstants.SPACE;
 
-public enum Operators implements Sign {
+public enum Operators implements Element {
 
     LEFT_BRACKET('(', 0) {
         @Override

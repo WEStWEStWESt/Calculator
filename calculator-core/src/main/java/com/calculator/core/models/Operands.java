@@ -3,9 +3,20 @@ package com.calculator.core.models;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-public enum Operands {
-    INTEGER("^[\\d]+$|^$"),
-    DOUBLE("^([0]|[1-9]+)[.,][\\d]+$|^$");
+public enum Operands implements Element{
+    INTEGER("^[\\d]+$"){
+        @Override
+        public boolean isOperand() {
+            return true;
+        }
+    },
+    DOUBLE("^([0]|[1-9]+)[.,][\\d]+$"){
+        @Override
+        public boolean isOperand() {
+            return true;
+        }
+    },
+    UNKNOWN(" ");
 
     private final Pattern pattern;
 
@@ -13,11 +24,13 @@ public enum Operands {
         pattern = Pattern.compile(regex);
     }
 
-    public static boolean isOperand(StringBuilder value) {
-        return Stream.of(values()).anyMatch(instance -> isValid(instance, value));
-    }
-
     private static boolean isValid(Operands operands, StringBuilder value) {
         return operands.pattern.matcher(value).matches();
     }
+
+    public static Operands findOperand(StringBuilder value){
+        return Stream.of(values())
+                .filter(instance -> isValid(instance, value)).findAny().orElse(UNKNOWN);
+    }
+
 }

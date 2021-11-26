@@ -19,27 +19,44 @@ public class LinearRpnServiceTest {
     public static final String ZERO_PLUS_INVALID_EXPRESSION = "00.35 + 2";
     public static final String SIMPLE_MINUS_EXPRESSION = "2 - 1";
     public static final String PRIORITIZED_EXPRESSION = "1 + 6 / 2 + 3 * 2 - 1 * 0";
-    public static final String PRIORITIZED_BRACKET_EXPRESSION = "4 / (1 + 3)";
+    public static final String PRIORITIZED_BRACKET_EXPRESSION = "- 4 / (1 - - 3)";
     public static final String UNARY_MINUS_EXPRESSION = "- 2 + 1";
-    public static final String UNARY_MINUS_INVALID_EXPRESSION = "3 + ( -1 - ---2 )";
     public static final String UNARY_DOUBLE_MINUS_EXPRESSION = "2 - - 1";
+    public static final String UNARY_PLUS_MINUS_EXPRESSION = "2 + - 1";
+    public static final String UNARY_DOUBLE_MIN_PLUS_MINUS_EXPRESSION = "- 2 - - 1";
+    public static final String UNARY_MINUS_INVALID_EXPRESSION = "3 + ( -1 - ---2 )";
 
     private RpnService service = new LinearRpnService();
 
     @Test
-    public void testGetRPNUnaryMinusInvalidOperation() {
-        verify(UNARY_MINUS_INVALID_EXPRESSION, INVALID_EXPRESSION_PREFIX + OPERATIONS_NOT_AGREED);
+    public void testGetRPNUnaryDoublePLusMinusOperation() {
+        verify(UNARY_PLUS_MINUS_EXPRESSION, "2 1 U + ");
     }
+
     @Test
     public void testGetRPNUnaryDoubleMinusOperation() {
         verify(UNARY_DOUBLE_MINUS_EXPRESSION, "2 1 U - ");
     }
 
     @Test
+    public void testGetRPNPrioritizedBracketOperations() {
+        verify(PRIORITIZED_BRACKET_EXPRESSION, "4 U 1 3 U - / ");
+    }
+
+    @Test
+    public void testGetRPNUnaryDoubleMinPLusMinusOperation() {
+        verify(UNARY_DOUBLE_MIN_PLUS_MINUS_EXPRESSION, "2 U 1 U - ");
+    }
+
+    @Test
+    public void testGetRPNUnaryMinusInvalidOperation() {
+        verify(UNARY_MINUS_INVALID_EXPRESSION, INVALID_EXPRESSION_PREFIX + OPERATIONS_NOT_AGREED);
+    }
+
+    @Test
     public void testGetRPNUnaryMinusOperation() {
         verify(UNARY_MINUS_EXPRESSION, "2 U 1 + ");
     }
-
 
     @Test
     public void testGetRPNEmptyError() {
@@ -63,11 +80,6 @@ public class LinearRpnServiceTest {
     @Test
     public void testGetRPNPrioritizedOperations() {
         verify(PRIORITIZED_EXPRESSION, "1 6 2 / + 3 2 * + 1 0 * - ");
-    }
-
-    @Test
-    public void testGetRPNPrioritizedBracketOperations() {
-        verify(PRIORITIZED_BRACKET_EXPRESSION, "4 1 3 + / ");
     }
 
     @Test
@@ -102,6 +114,7 @@ public class LinearRpnServiceTest {
         verify(ZERO_PLUS_INVALID_EXPRESSION,
                 INVALID_EXPRESSION_PREFIX + "Operand '00.35' at position 1 invalid.");
     }
+
     private void verify(String expression, String expectedValue) {
         String result = service.getRPN(expression);
         assertEquals(expectedValue, result);

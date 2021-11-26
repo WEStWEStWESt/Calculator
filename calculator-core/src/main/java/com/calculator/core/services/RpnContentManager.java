@@ -1,5 +1,6 @@
 package com.calculator.core.services;
 
+import com.calculator.core.models.Element;
 import com.calculator.core.models.Operands;
 import com.calculator.core.models.Operators;
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +23,7 @@ class RpnContentManager {
     private final StringBuilder element;
     private final Deque<Operators> operators;
     private final RpnErrorResolver error;
+    private Element lastElement;
 
     RpnContentManager() {
         rpn = new StringBuilder();
@@ -62,7 +64,9 @@ class RpnContentManager {
 
     private void resolveOperand() {
         if (hasNoError()) {
-            if (Operands.isOperand(element)) {
+            Operands operand = Operands.findOperand(element);
+            if (operand.isOperand()) {
+                lastElement = operand;
                 toRpn();
                 return;
             }
@@ -70,21 +74,17 @@ class RpnContentManager {
         }
     }
 
-    //     3 + ( -1 - ---2 )
     @SuppressWarnings("ALL")
     private void resolveOperator(Operators operator) {
         if (hasNoError()) {
-            if (operator == MINUS && rpn.isEmpty()) {
-                if (operators.peek() == UNARY_MINUS) {
+            if (operator == MINUS && (rpn.isEmpty() || lastElement.isOperation() || lastElement == LEFT_BRACKET)) {
+                if (lastElement == UNARY_MINUS) {
                     error.resolve(OPERATIONS_NOT_AGREED);
                 } else {
                     operator = UNARY_MINUS;
                 }
             }
-
-            if (!rpn.isEmpty() && operators.peek() == operator){
-                operator = UNARY_MINUS;
-            }
+            lastElement = operator;
 
             if (operator == RIGHT_BRACKET) {
                 while (hasOperators() && (operator = operators.pop()) != LEFT_BRACKET) {
@@ -139,6 +139,7 @@ class RpnContentManager {
         }
 
         void resolve(StringBuilder element) {
+            if (element.isEmpty()) return;
             resolve(OPERAND_ERROR_FORMAT.formatted(element, position.get()));
         }
 

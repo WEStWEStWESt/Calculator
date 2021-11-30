@@ -43,6 +43,12 @@ public enum Operators implements Element {
             return true;
         }
     },
+    POW('^', 3){
+        @Override
+        public boolean isOperation() {
+            return true;
+        }
+    },
     UNARY_MINUS('U', 10) {
         @Override
         public boolean isOperation() {

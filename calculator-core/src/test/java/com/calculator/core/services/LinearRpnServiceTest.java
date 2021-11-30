@@ -9,7 +9,7 @@ import static org.junit.Assert.*;
 
 public class LinearRpnServiceTest {
 
-    //public static final String INVALID_EXPRESSION = "2a + 4 * ( 5 - 5 / 0";
+    //public static final String INVALID_EXPRESSION = "2 + 4 * ( 5 - 5 / 0";
     public static final String SIMPLE_PLUS_EXPRESSION = "2 + 1";
     public static final String COMPLEX_PLUS_MINUS_EXPRESSION = "2 + 1 - 52";
     public static final String COMPLEX_INT_PLUS_EXPRESSION = "21 + 15";
@@ -25,8 +25,20 @@ public class LinearRpnServiceTest {
     public static final String UNARY_PLUS_MINUS_EXPRESSION = "2 + - 1";
     public static final String UNARY_DOUBLE_MIN_PLUS_MINUS_EXPRESSION = "- 2 - - 1";
     public static final String UNARY_MINUS_INVALID_EXPRESSION = "3 + ( -1 - ---2 )";
+    public static final String SIMPLE_POW_EXPRESSION = "1 ^ 2";
+    public static final String CASCADE_POW_EXPRESSION = "1 ^ 2 ^ 3";
 
     private RpnService service = new LinearRpnService();
+
+    @Test
+    public void testSimplePowOperation() {
+        verify(SIMPLE_POW_EXPRESSION, "1 2 ^ ");
+    }
+
+    @Test
+    public void testCascadePowOperation() {
+        verify(CASCADE_POW_EXPRESSION, "1 2 3 ^ ^ ");
+    }
 
     @Test
     public void testGetRPNUnaryDoublePLusMinusOperation() {

@@ -24,6 +24,8 @@ class RpnContentManager {
     private final Deque<Operators> operators;
     private final RpnErrorResolver error;
     private Element lastElement;
+    private boolean pw = false;
+    int count = 0;
 
     RpnContentManager() {
         rpn = new StringBuilder();
@@ -82,6 +84,14 @@ class RpnContentManager {
                     error.resolve(OPERATIONS_NOT_AGREED);
                 } else {
                     operator = UNARY_MINUS;
+                }
+            }
+
+            if (operator == POW) {
+                count++;
+                if ( ((count % 2) == 0) && operator == POW) {
+                    operators.removeLast();
+                    operator = MULTIPLY;
                 }
             }
             lastElement = operator;

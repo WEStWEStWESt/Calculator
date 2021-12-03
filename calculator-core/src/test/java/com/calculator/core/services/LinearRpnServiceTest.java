@@ -26,18 +26,37 @@ public class LinearRpnServiceTest {
     public static final String UNARY_DOUBLE_MIN_PLUS_MINUS_EXPRESSION = "- 2 - - 1";
     public static final String UNARY_MINUS_INVALID_EXPRESSION = "3 + ( -1 - ---2 )";
     public static final String SIMPLE_POW_EXPRESSION = "1 ^ 2";
-    public static final String CASCADE_POW_EXPRESSION = "1 ^ 2 ^ 3";
+    public static final String CASCADE_POW_EXPRESSION = "2 ^ 1 ^ 3 ^ 4";
+    public static final String COMPLEX_POW_EXPRESSION = "1 * 3 ^ 2 - 6";
+
+    /*        1.  A^n * A^m == A^(n+m)
+              2.  (A^n)^m)^k == A^(n*m*k)
+                  (((X^2 * Y)^3)^4 == (X^2 * Y)^(3*4) = (X^2 * Y)^12 = X^(2*12) * Y^12 =
+                  = X^24 * Y^12
+              3.  (A * B)^n == A^n * B^n
+                  (3 * X^2 * Y * Z^3)^2 == (3 * X^2)^2 * Y^2 * (Z^3)^2 == 9 * X^4 * Y^2 * Z^6
+              4.  (A/B)^n = A^n / B^n
+              5.  A^-n = 1 / A^n
+              6.  A^0 = 1  (a != 0)
+              7.  A^1 = A  (a != 0)
+              8.  A^n / A^m = A^(n-m)
+              */
 
     private RpnService service = new LinearRpnService();
 
     @Test
-    public void testSimplePowOperation() {
-        verify(SIMPLE_POW_EXPRESSION, "1 2 ^ ");
+    public void testCascadePowOperation() {
+        verify(CASCADE_POW_EXPRESSION, "2 1 3 4 * * ^ ");
     }
 
     @Test
-    public void testCascadePowOperation() {
-        verify(CASCADE_POW_EXPRESSION, "1 2 3 ^ ^ ");
+    public void testComplexPowOperation() {
+        verify(COMPLEX_POW_EXPRESSION, "1 3 2 ^ * 6 - ");
+    }
+
+    @Test
+    public void testSimplePowOperation() {
+        verify(SIMPLE_POW_EXPRESSION, "1 2 ^ ");
     }
 
     @Test

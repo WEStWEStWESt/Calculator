@@ -31,12 +31,6 @@ public enum Operators implements Element {
             return true;
         }
     },
-    POW('^', 3){
-        @Override
-        public boolean isOperation() {
-            return true;
-        }
-    },
     MULTIPLY('*', 2) {
         @Override
         public boolean isOperation() {
@@ -44,6 +38,12 @@ public enum Operators implements Element {
         }
     },
     DIVIDE('/', 2) {
+        @Override
+        public boolean isOperation() {
+            return true;
+        }
+    },
+    POW('^', 3){
         @Override
         public boolean isOperation() {
             return true;

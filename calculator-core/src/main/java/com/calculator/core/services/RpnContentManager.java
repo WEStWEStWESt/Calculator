@@ -17,27 +17,22 @@ import static com.calculator.core.utils.CalculatorConstants.SPACE;
 
 class RpnContentManager {
 
-    private final AtomicInteger length;
-    private final AtomicInteger position;
     private final StringBuilder rpn;
     private final StringBuilder element;
     private final Deque<Operators> operators;
     private final RpnErrorResolver error;
-    private Element lastElement;
-    private boolean pw = false;
-    int count = 0;
+    private final Statistics statistics;
 
     RpnContentManager() {
         rpn = new StringBuilder();
         operators = new ArrayDeque<>();
         error = new RpnErrorResolver();
         element = new StringBuilder();
-        length = new AtomicInteger();
-        position = new AtomicInteger();
+        statistics = new Statistics();
     }
 
     void resolveSymbol(int code) {
-        length.incrementAndGet();
+        statistics.incrementLength();
         if (SPACE == code) {
             return;
         }
@@ -68,7 +63,7 @@ class RpnContentManager {
         if (hasNoError()) {
             Operands operand = Operands.findOperand(element);
             if (operand.isOperand()) {
-                lastElement = operand;
+                statistics.setLastElement(operand);
                 toRpn();
                 return;
             }
@@ -79,6 +74,7 @@ class RpnContentManager {
     @SuppressWarnings("ALL")
     private void resolveOperator(Operators operator) {
         if (hasNoError()) {
+            Element lastElement = statistics.getLastElement();
             if (operator == MINUS && (rpn.isEmpty() || lastElement.isOperation() || lastElement == LEFT_BRACKET)) {
                 if (lastElement == UNARY_MINUS) {
                     error.resolve(OPERATIONS_NOT_AGREED);
@@ -86,15 +82,12 @@ class RpnContentManager {
                     operator = UNARY_MINUS;
                 }
             }
+            statistics.setLastElement(operator);
 
-            if (operator == POW) {
-                count++;
-                if ( ((count % 2) == 0) && operator == POW) {
-                    operators.removeLast();
-                    operator = MULTIPLY;
-                }
-            }
-            lastElement = operator;
+            if (isPowCascade(operator)) {
+                operators.push(operator = MULTIPLY);
+                return;
+            } else if (operator != POW) statistics.nullifyPowCounter();
 
             if (operator == RIGHT_BRACKET) {
                 while (hasOperators() && (operator = operators.pop()) != LEFT_BRACKET) {
@@ -109,9 +102,13 @@ class RpnContentManager {
         }
     }
 
+    private boolean isPowCascade(Operators operator) {
+        return operator == POW && statistics.isPowCascade();
+    }
+
     private void resolveElement(char symbol) {
         if (element.isEmpty()) {
-            position.set(length.get());
+            statistics.setCurrentPosition();
         }
         element.append(symbol);
     }
@@ -136,6 +133,48 @@ class RpnContentManager {
         }
     }
 
+    private class Statistics {
+        private final AtomicInteger length;
+        private final AtomicInteger position;
+        private final AtomicInteger powCounter;
+        private Element lastElement;
+
+        Statistics() {
+            this.length = new AtomicInteger();
+            this.position = new AtomicInteger();
+            this.powCounter = new AtomicInteger();
+        }
+
+        Element getLastElement() {
+            return lastElement;
+        }
+
+        public int getPosition() {
+            return position.get();
+        }
+
+        void setLastElement(Element lastElement) {
+            this.lastElement = lastElement;
+        }
+
+        void incrementLength() {
+            length.incrementAndGet();
+        }
+
+        void nullifyPowCounter() {
+            powCounter.set(0);
+        }
+
+        boolean isPowCascade() {
+            return statistics.powCounter.getAndIncrement() > 0;
+        }
+
+        void setCurrentPosition() {
+            position.set(length.get());
+        }
+
+    }
+
     private class RpnErrorResolver {
 
         private String message;
@@ -150,7 +189,7 @@ class RpnContentManager {
 
         void resolve(StringBuilder element) {
             if (element.isEmpty()) return;
-            resolve(OPERAND_ERROR_FORMAT.formatted(element, position.get()));
+            resolve(OPERAND_ERROR_FORMAT.formatted(element, statistics.getPosition()));
         }
 
         String get() {

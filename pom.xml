@@ -24,6 +24,7 @@
 
     <modules>
         <module>calculator-core</module>
+        <module>calculator-files</module>
     </modules>
 
     <properties>

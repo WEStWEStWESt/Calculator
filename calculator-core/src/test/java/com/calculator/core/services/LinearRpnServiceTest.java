@@ -139,7 +139,6 @@ public class LinearRpnServiceTest {
                 INVALID_EXPRESSION_PREFIX + "Operand '00.35' at position 1 invalid.");
     }
 
-
     private void verify(String expression, String expectedValue) {
         String result = service.getRPN(expression);
         assertEquals(expectedValue, result);

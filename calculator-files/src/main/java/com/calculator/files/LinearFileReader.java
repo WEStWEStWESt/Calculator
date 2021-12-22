@@ -47,6 +47,9 @@ public class LinearFileReader implements FileReader {
     }
 
     private Path validatePath(String path) {
+        if (path == null || path.isBlank()) {
+            throw new FileNotFoundException("File path is null or blank.");
+        }
         Path filePath = Paths.get(path);
         if (Files.notExists(filePath)) {
             throw new FileNotFoundException(filePath);

@@ -6,6 +6,10 @@ public class FileNotFoundException extends FileException {
     public static final String NOT_FOUND_PATH = "File '%s' not found";
 
     public FileNotFoundException(Path path) {
-        super(path == null ? NULL_PATH : NOT_FOUND_PATH.formatted(path.toFile().getAbsolutePath()));
+        super(NOT_FOUND_PATH.formatted(path.toFile().getAbsolutePath()));
+    }
+
+    public FileNotFoundException(String message) {
+        super(message);
     }
 }

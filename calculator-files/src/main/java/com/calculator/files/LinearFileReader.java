@@ -8,7 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-/*
+    /*
  * Добавить исключения на проверки IsRegularFile и isReadable,
  * желательно вынести все проверки в отдельный метод.
  * почитать про способы чтения файлов с использованием java.nio.Files.

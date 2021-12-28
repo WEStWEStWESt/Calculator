@@ -1,11 +1,13 @@
 root/layer1/layer2/layer3/layer4/
 walk()
 
+-----------------------------------------------------------------------------------------------
+
 SRC for walk() - root !!! depth = 0 !!  "root/layer1" is:
 src/main
 src/test
 
-
+-----------------------------------------------------------------------------------------------
 
 layer1 for walk() !!! depth = 1 !! "root/layer1/layer2" is:
 src/main/java
@@ -13,7 +15,7 @@ src/main/java
 src/test/java
 src/test/resources
 
-
+-----------------------------------------------------------------------------------------------
 
 layer2 for walk() !!! depth = 2 !! "root/layer1/layer2/layer3" is:
 src/main/java/com
@@ -23,17 +25,19 @@ src/test/resources/testFileForReadingInParts.txt
 src/test/resources/testUnreadableFile.txt
 src/test/resources/walk.txt
 
-
+-----------------------------------------------------------------------------------------------
 
 layer3 for walk() !!! depth = 3 !! "root/layer1/layer2/layer3/layer4" is:
 src/main/java/com/calculator
 
-
+-----------------------------------------------------------------------------------------------
 
 layer4 for walk() !!! depth = 4 !! "root/layer1/layer2/layer3/layer4/" is:
 src/main/java/com/calculator/files
 
 STREAM STOP.
 
+-----------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------
 Considering the specified depth, walk() is stopped. However, if the depth value is bigger,
 we could work further.

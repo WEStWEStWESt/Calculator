@@ -14,23 +14,23 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /*
-* Добавить исключения на проверки IsRegularFile и isReadable,
-* желательно вынести все проверки в отдельный метод.
-* почитать про способы чтения файлов с использованием java.nio.Files.
-* Желательно организовать постраничное чтение
-* почитать про методы lines и walk,
-* ну и в целом ознакомиться с функционалом библиотеки.
+ Добавить исключения на проверки IsRegularFile и isReadable,
+  желательно вынести все проверки в отдельный метод.
+  почитать про способы чтения файлов с использованием java.nio.Files.
+  Желательно организовать постраничное чтение
+  почитать про методы lines и walk,
+  ну и в целом ознакомиться с функционалом библиотеки.
 
-    Чтение файла частями.
-    (create Inner class) Использовать walk, чтобы добраться до нужного файла(директории).Скипаем ненужное.Читаем по
-    страницам.(по 100 файлов)
-    Использовать lines (читаем по станицам, 1000 строк) Для этого создать итератор, который будет проверять
-    наличие "СЛЕДУЮЩЕЙ ЧАСТИ ДЛЯ ЧТЕНИЯ", и,собственно РИДЕР для чтения.
-    В стриме использовать лямбду с телом{}...внутри  ставим точку останова для debug.
-    Files.walk().map(path ->
+Чтение файла частями.
+(create Inner class) Использовать walk, чтобы добраться до нужного файла(директории).Скипаем ненужное.Читаем по
+страницам.(по 100 файлов)
+Использовать lines (читаем по станицам, 1000 строк) Для этого создать итератор, который будет проверять
+наличие "СЛЕДУЮЩЕЙ ЧАСТИ ДЛЯ ЧТЕНИЯ", и,собственно РИДЕР для чтения.
+В стриме использовать лямбду с телом{}...внутри  ставим точку останова для debug.
+Files.walk().map(path ->
 
-    СОЗДАТЬ ИСКЛЮЧЕНИЕ ДЛЯ NULL-АРГУМЕНТА, ПРИШЕДШЕГО В КОНСТРУКТОР.
-    */
+СОЗДАТЬ ИСКЛЮЧЕНИЕ ДЛЯ NULL-АРГУМЕНТА, ПРИШЕДШЕГО В КОНСТРУКТОР.
+*/
     /*
         //  ---  walk
         try (Stream<Path> walk = Files.walk(filePath, 4)) {
@@ -45,10 +45,13 @@ import java.util.stream.Collectors;
             throw new FileNotFoundException(filePath);
         }*/
 public class LinearFileReader implements FileReader {
-    private Path path;
 
-    public LinearFileReader(String path) {
-        this.path = validatePath(path);
+    private final Pager pager;
+
+    public LinearFileReader(String path) throws IOException, EmptyPageException {
+        Path validPath = validatePath(path);
+        this.pager = new Pager(validPath);
+        pager.init();
     }
 
     private Path validatePath(String path) {
@@ -66,38 +69,55 @@ public class LinearFileReader implements FileReader {
     }
 
     private class Pager implements Iterator<List<Path>> {
+        public static final int LIMIT = 100;
         private Path path;
         private List<Path> page;
+        private int pageNumber;
 
         Pager(Path path) {
             this.path = path;
+            pageNumber++;
         }
 
-        void init() throws IOException {
+        void init() throws IOException, EmptyPageException {
             page = getPage();
             if (page == null || page.isEmpty()) {
                 throw new EmptyPageException();
             }
         }
 
-        List<Path> getPage() throws IOException {
-            return Files.walk(LinearFileReader.this.path, 4)
-                    .filter(Files::isDirectory)
-                    .skip(100)
-                    .limit(150)
+        private List<Path> getPage() throws IOException {
+            return Files.walk(path, 4)
+                    .filter(Files::isRegularFile)
+                    .skip(getOffset())
+                    .limit(LIMIT)
                     .collect(Collectors.toList());
         }
 
         @Override
         public boolean hasNext() {
-            //TODO the page field should be checked on NULL or Empty. If empty - return False, otherwise - true.
-            return false;
+            if (page == null || page.isEmpty()) {
+                try {
+                    getPage();
+                } catch (IOException e) {
+                    System.out.println("Unable to get page [" + pageNumber + "] : " + e.getMessage());
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+            return page != null && !page.isEmpty();
         }
 
         @Override
         public List<Path> next() {
-            //TODO return the Page field.
-            return null;
+            List<Path> page = this.page;
+            pageNumber++;
+            this.page = null;
+            return page;
+        }
+
+        private int getOffset() {
+            return pageNumber == 1 ? 0 : LIMIT * pageNumber;
         }
     }
 }

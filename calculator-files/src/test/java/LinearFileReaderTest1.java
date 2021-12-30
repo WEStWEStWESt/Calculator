@@ -2,28 +2,39 @@ import com.calculator.files.LinearFileReader;
 import com.calculator.files.exceptions.EmptyPageException;
 import com.calculator.files.exceptions.FileNotFoundException;
 import com.calculator.files.exceptions.FileUnreadableException;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
 
-public class LinearFileReaderTest {
+public class LinearFileReaderTest1 {
     public static final String VALID_FILEPATH = "src/test/resources/testFileForReadingInParts.txt";
+    public static final String INVALID_FILEPATH = "src/test/resources/root";
     public static final String UNREADABLE_FILEPATH = "src/test/resources/testUnreadableFile.txt";
     public static final String NONE_EXISTED_FILEPATH = "src/test/resources/oops.txt";
-    public static final String EMPTY_DIRECTORY_FILEPATH = "/src";
-    private String contextPath;
+    public static final String EMPTY_DIRECTORY_FILEPATH = "src/test/resources/src";
 
-    @Before
-    public void setUp() throws Exception {
-        String userPath = System.getProperty("user.dir");
-        this.contextPath = userPath.substring(0, userPath.lastIndexOf("\\"));
+    /* public static final String EMPTY_DIRECTORY_FILEPATH = "/src";
+     private String contextPath;
+
+     @Before
+     public void setUp() throws Exception {
+         String userPath = System.getProperty("user.dir");
+         this.contextPath = userPath.substring(0, userPath.lastIndexOf("\\"));
+     }
+     @Test(expected = EmptyPageException.class)
+     public void whenCreateNewLinearFileReader_shouldThrowEmptyPageException() throws IOException, EmptyPageException {
+         new LinearFileReader(contextPath + EMPTY_DIRECTORY_FILEPATH);
+     }*/
+    @Ignore
+    @Test
+    public void whenCreateNewLinearFileReader_should() throws IOException, EmptyPageException {
+        new LinearFileReader(INVALID_FILEPATH);
     }
 
     @Test(expected = EmptyPageException.class)
     public void whenCreateNewLinearFileReader_shouldThrowEmptyPageException() throws IOException, EmptyPageException {
-        new LinearFileReader(contextPath + EMPTY_DIRECTORY_FILEPATH);
+        new LinearFileReader(EMPTY_DIRECTORY_FILEPATH);
     }
 
     @Test

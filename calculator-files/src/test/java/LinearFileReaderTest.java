@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-public class LinearFileReaderTest1 {
+public class LinearFileReaderTest {
     public static final String VALID_FILEPATH = "src/test/resources/testFileForReadingInParts.txt";
     public static final String INVALID_FILEPATH = "src/test/resources/root";
     public static final String UNREADABLE_FILEPATH = "src/test/resources/testUnreadableFile.txt";
@@ -26,9 +26,12 @@ public class LinearFileReaderTest1 {
      public void whenCreateNewLinearFileReader_shouldThrowEmptyPageException() throws IOException, EmptyPageException {
          new LinearFileReader(contextPath + EMPTY_DIRECTORY_FILEPATH);
      }*/
+
+    //TODO check getPage() functionality which throws an IOException
+
     @Ignore
     @Test
-    public void whenCreateNewLinearFileReader_should() throws IOException, EmptyPageException {
+    public void reservedFutureTests() throws IOException, EmptyPageException {
         new LinearFileReader(INVALID_FILEPATH);
     }
 

@@ -46,12 +46,12 @@ Files.walk().map(path ->
         }*/
 public class LinearFileReader implements FileReader {
 
-    private final Pager pager;
+    private final Pager filesPager;
 
     public LinearFileReader(String path) throws IOException, EmptyPageException {
         Path validPath = validatePath(path);
-        this.pager = new Pager(validPath);
-        pager.init();
+        this.filesPager = new FilesPager(validPath);
+        filesPager.init();
     }
 
     private Path validatePath(String path) {
@@ -68,14 +68,49 @@ public class LinearFileReader implements FileReader {
         return filePath;
     }
 
-    private class Pager implements Iterator<List<Path>> {
+    private class FilesPager extends Pager<Path> {
         public static final int LIMIT = 100;
-        private Path path;
-        private List<Path> page;
+        public static final int DEPTH = 4;
+
+        FilesPager(Path path) {
+            super(path, LIMIT);
+        }
+
+        @Override
+        List<Path> getPage() throws IOException {
+            return Files.walk(path, DEPTH)
+                    .filter(Files::isRegularFile)
+                    .skip(getOffset())
+                    .limit(LIMIT)
+                    .collect(Collectors.toList());
+        }
+    }
+
+    private class LinesPager extends Pager<String> {
+        public static final int LIMIT = 1000;
+
+        LinesPager(Path path) {
+            super(path, LIMIT);
+        }
+
+        @Override
+        List<String> getPage() throws IOException {
+            return Files.lines(path)
+                    .skip(getOffset())
+                    .limit(LIMIT)
+                    .collect(Collectors.toList());
+        }
+    }
+
+    private abstract class Pager<T> implements Iterator<List<T>> {
+        private int limit;
+        protected Path path;
+        protected List<T> page;
         private int pageNumber;
 
-        Pager(Path path) {
+        Pager(Path path, int limit) {
             this.path = path;
+            this.limit = limit;
             pageNumber++;
         }
 
@@ -86,13 +121,7 @@ public class LinearFileReader implements FileReader {
             }
         }
 
-        private List<Path> getPage() throws IOException {
-            return Files.walk(path, 4)
-                    .filter(Files::isRegularFile)
-                    .skip(getOffset())
-                    .limit(LIMIT)
-                    .collect(Collectors.toList());
-        }
+        abstract List<T> getPage() throws IOException;
 
         @Override
         public boolean hasNext() {
@@ -109,15 +138,15 @@ public class LinearFileReader implements FileReader {
         }
 
         @Override
-        public List<Path> next() {
-            List<Path> page = this.page;
+        public List<T> next() {
+            List<T> page = this.page;
             pageNumber++;
             this.page = null;
             return page;
         }
 
-        private int getOffset() {
-            return pageNumber == 1 ? 0 : LIMIT * pageNumber;
+        protected int getOffset() {
+            return pageNumber == 1 ? 0 : limit * pageNumber;
         }
     }
 }

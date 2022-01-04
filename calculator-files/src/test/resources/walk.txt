@@ -20,7 +20,7 @@ src/test/resources
 layer2 for walk() !!! depth = 2 !! "root/layer1/layer2/layer3" is:
 src/main/java/com
 
-src/test/java/LinearFileReaderTest1.java
+src/test/java/LinearFileReaderTest.java
 src/test/resources/testFileForReadingInParts.txt
 src/test/resources/testUnreadableFile.txt
 src/test/resources/walk.txt

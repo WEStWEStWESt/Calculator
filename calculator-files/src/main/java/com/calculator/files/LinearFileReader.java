@@ -10,7 +10,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.stream.Collectors;
 
 /*
@@ -44,10 +46,29 @@ Files.walk().map(path ->
         } catch (Exception e) {
             throw new FileNotFoundException(filePath);
         }*/
+
+/*
+   1. У Ридера запрашивается строка.
+   2. Ридер обращается к странице ранее полученных строк(Лист и т.д.).
+     2.1 если страница есть, то берём первый элемент из страницы и удаляем его;
+     2.2. если страница нет, то:
+         2.2.1 если есть LinesPager, то запрашиваем следующую страницу (hasNext, next).
+             * если hasNext - true, тогда делаем полученную страницу текущей => переходим к п.2.
+             * если hasNext - false, значит страницы нет => переходим к п.2.2.2.
+         2.2.2 если нет LinesPager, то обращаемся к странице ранее полученных файлов:
+              2.2.2.1 если сраница есть, то берём первый элемент из страницы,удаляем его и
+                      создаём для полученного файла LinesPager => переходим к п.2.2.1.
+              2.2.2.2 если страницы нет, то:
+                 2.2.2.2a если есть FilesPager, то запрашиваем следующую страницу (hasNext, next).
+                     * если hasNext - true, тогда делаем полученную страницу текущей => переходим к п.2.2.2.1
+                     * если hasNext - false, значит страницы нет, LinearFileReader завершает работу.
+
+*/
 public class LinearFileReader implements FileReader {
 
-    private final Pager filesPager;
-
+    private final Pager<Path> filesPager;
+    private Pager<String> linesPager;
+    private Queue<String> lines;
     public LinearFileReader(String path) throws IOException, EmptyPageException {
         Path validPath = validatePath(path);
         this.filesPager = new FilesPager(validPath);
@@ -68,6 +89,23 @@ public class LinearFileReader implements FileReader {
         return filePath;
     }
 
+    @Override
+    public boolean hasNext() {
+        if (lines!= null && !lines.isEmpty()){
+            return true;
+        }
+        if (linesPager != null && !linesPager.isEmpty()){
+            lines = linesPager.next();
+            return hasNext();
+        }
+        return false;
+    }
+
+    @Override
+    public String next() {
+        return lines.poll();
+    }
+
     private class FilesPager extends Pager<Path> {
         public static final int LIMIT = 100;
         public static final int DEPTH = 4;
@@ -77,12 +115,12 @@ public class LinearFileReader implements FileReader {
         }
 
         @Override
-        List<Path> getPage() throws IOException {
+        Queue<Path> getPage() throws IOException {
             return Files.walk(path, DEPTH)
                     .filter(Files::isRegularFile)
                     .skip(getOffset())
                     .limit(LIMIT)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toCollection(LinkedList::new));
         }
     }
 
@@ -94,18 +132,18 @@ public class LinearFileReader implements FileReader {
         }
 
         @Override
-        List<String> getPage() throws IOException {
+        Queue<String> getPage() throws IOException {
             return Files.lines(path)
                     .skip(getOffset())
                     .limit(LIMIT)
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toCollection(LinkedList::new));
         }
     }
 
-    private abstract class Pager<T> implements Iterator<List<T>> {
-        private int limit;
+    private abstract class Pager<T> implements Iterator<Queue<T>> {
+        private final int limit;
         protected Path path;
-        protected List<T> page;
+        protected Queue<T> page;
         private int pageNumber;
 
         Pager(Path path, int limit) {
@@ -113,15 +151,6 @@ public class LinearFileReader implements FileReader {
             this.limit = limit;
             pageNumber++;
         }
-
-        void init() throws IOException, EmptyPageException {
-            page = getPage();
-            if (page == null || page.isEmpty()) {
-                throw new EmptyPageException();
-            }
-        }
-
-        abstract List<T> getPage() throws IOException;
 
         @Override
         public boolean hasNext() {
@@ -138,8 +167,8 @@ public class LinearFileReader implements FileReader {
         }
 
         @Override
-        public List<T> next() {
-            List<T> page = this.page;
+        public Queue<T> next() {
+            Queue<T> page = this.page;
             pageNumber++;
             this.page = null;
             return page;
@@ -148,5 +177,18 @@ public class LinearFileReader implements FileReader {
         protected int getOffset() {
             return pageNumber == 1 ? 0 : limit * pageNumber;
         }
+
+        void init() throws IOException, EmptyPageException {
+            page = getPage();
+            if (page == null || page.isEmpty()) {
+                throw new EmptyPageException();
+            }
+        }
+
+        boolean isEmpty(){
+            return !hasNext();
+        }
+
+        abstract Queue<T> getPage() throws IOException;
     }
 }

@@ -1,7 +1,6 @@
 package com.calculator.files.readers;
 
-import java.nio.file.Path;
+import java.util.Iterator;
 
-public interface FileReader {
-     //String read(String path);
+public interface FileReader extends Iterator<String> {
 }

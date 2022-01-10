@@ -11,47 +11,14 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 import java.util.stream.Collectors;
-
-/*
- Добавить исключения на проверки IsRegularFile и isReadable,
-  желательно вынести все проверки в отдельный метод.
-  почитать про способы чтения файлов с использованием java.nio.Files.
-  Желательно организовать постраничное чтение
-  почитать про методы lines и walk,
-  ну и в целом ознакомиться с функционалом библиотеки.
-
-Чтение файла частями.
-(create Inner class) Использовать walk, чтобы добраться до нужного файла(директории).Скипаем ненужное.Читаем по
-страницам.(по 100 файлов)
-Использовать lines (читаем по станицам, 1000 строк) Для этого создать итератор, который будет проверять
-наличие "СЛЕДУЮЩЕЙ ЧАСТИ ДЛЯ ЧТЕНИЯ", и,собственно РИДЕР для чтения.
-В стриме использовать лямбду с телом{}...внутри  ставим точку останова для debug.
-Files.walk().map(path ->
-
-СОЗДАТЬ ИСКЛЮЧЕНИЕ ДЛЯ NULL-АРГУМЕНТА, ПРИШЕДШЕГО В КОНСТРУКТОР.
-*/
-    /*
-        //  ---  walk
-        try (Stream<Path> walk = Files.walk(filePath, 4)) {
-            walk.forEach(System.out::println);
-        } catch (Exception e) {
-            throw new FileNotFoundException(filePath);
-        }
-        //  ---  lines
-        try (Stream<String> stream = Files.lines(Paths.get(path))) {
-            stream.forEach(System.out::println);
-        } catch (Exception e) {
-            throw new FileNotFoundException(filePath);
-        }*/
 
 /*
    1. У Ридера запрашивается строка.
    2. Ридер обращается к странице ранее полученных строк(Лист и т.д.).
      2.1 если страница есть, то берём первый элемент из страницы и удаляем его;
-     2.2. если страница нет, то:
+     2.2. если страницы нет, то:
          2.2.1 если есть LinesPager, то запрашиваем следующую страницу (hasNext, next).
              * если hasNext - true, тогда делаем полученную страницу текущей => переходим к п.2.
              * если hasNext - false, значит страницы нет => переходим к п.2.2.2.
@@ -69,6 +36,8 @@ public class LinearFileReader implements FileReader {
     private final Pager<Path> filesPager;
     private Pager<String> linesPager;
     private Queue<String> lines;
+    private Queue<Path> files;
+
     public LinearFileReader(String path) throws IOException, EmptyPageException {
         Path validPath = validatePath(path);
         this.filesPager = new FilesPager(validPath);
@@ -91,11 +60,23 @@ public class LinearFileReader implements FileReader {
 
     @Override
     public boolean hasNext() {
-        if (lines!= null && !lines.isEmpty()){
-            return true;
+        // 2
+        if (lines != null && !lines.isEmpty()) {
+            return true; // 2.1 + next()
         }
-        if (linesPager != null && !linesPager.isEmpty()){
-            lines = linesPager.next();
+        // 2.2
+        if (linesPager != null && !linesPager.isEmpty()) {
+            lines = linesPager.next(); // 2.2.1
+            return hasNext();
+        }
+        // 2.2.2
+        if (files != null && !files.isEmpty()) {
+            resolveLinesReader(files.poll()); // 2.2.2.1
+            return hasNext();
+        }
+        // 2.2.2.2
+        if (!filesPager.isEmpty()) {
+            files = filesPager.next(); // 2.2.2.2a
             return hasNext();
         }
         return false;
@@ -104,6 +85,17 @@ public class LinearFileReader implements FileReader {
     @Override
     public String next() {
         return lines.poll();
+    }
+
+    private void resolveLinesReader(Path path) {
+        linesPager = new LinesPager(path);
+        try {
+            linesPager.init();
+        } catch (IOException e) {
+            System.out.println("Unable to get a lines page of file [" + path + "]: " + e.getMessage());
+        } catch (EmptyPageException e) {
+            System.out.println("Unable to get a lines page of file [" + path + "]: file is empty.");
+        }
     }
 
     private class FilesPager extends Pager<Path> {
@@ -185,7 +177,7 @@ public class LinearFileReader implements FileReader {
             }
         }
 
-        boolean isEmpty(){
+        boolean isEmpty() {
             return !hasNext();
         }
 

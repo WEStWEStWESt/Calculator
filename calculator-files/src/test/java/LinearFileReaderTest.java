@@ -7,6 +7,9 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.Assert.*;
 
@@ -18,6 +21,7 @@ public class LinearFileReaderTest {
     public static final String EMPTY_FILE_FILEPATH = "src/test/resources/root/empty.txt";
     public static final String ONE_FILE_FILEPATH = "src/test/resources/root/0.txt";
     public static final String ONE_FILE_IN_FOLDER_FILEPATH = "src/test/resources/root/level1/level2/level3/level4/level5/5.txt";
+    public static final String ALL_FILES_FILEPATH = "src/test/resources/root";
 
     /* public static final String EMPTY_DIRECTORY_FILEPATH = "/src";
      private String contextPath;
@@ -33,30 +37,19 @@ public class LinearFileReaderTest {
      }*/
 
     //TODO check getPage() functionality which throws an IOException
-
-    private void assertAllLines(String path, int fileNumber) throws IOException, EmptyPageException {
-        LinearFileReader reader = new LinearFileReader(path);
-        assertTrue(reader.hasNext());
-        var lines = new HashSet<>();
-        //        while (reader.hasNext()) {
-//            lines.add(reader.next());
-//        }
-        reader.forEachRemaining(lines::add);
-        assertEquals(4, lines.size());
-        assertTrue(lines.contains("file %s - line1".formatted(fileNumber)));
-        assertTrue(lines.contains("file %s - line2".formatted(fileNumber)));
-        assertTrue(lines.contains("file %s - line3".formatted(fileNumber)));
-        assertTrue(lines.contains("file %s - line4".formatted(fileNumber)));
+    @Test
+    public void whenReadAllFilesStartingWithLevelOneFolder_shouldReturnAllTheFilesLines() throws IOException, EmptyPageException {
+        assertAllLines(ALL_FILES_FILEPATH, 4);
     }
 
     @Test
     public void whenReadOneFolderWithOneFile_shouldReturnAllTheFileLines() throws IOException, EmptyPageException {
-        assertAllLines(ONE_FILE_IN_FOLDER_FILEPATH, 5);
+        assertAllLines(ONE_FILE_IN_FOLDER_FILEPATH, 1);
     }
 
     @Test
     public void whenReadOneFile_shouldReturnAllTheFileLines() throws IOException, EmptyPageException {
-        assertAllLines(ONE_FILE_FILEPATH, 0);
+        assertAllLines(ONE_FILE_FILEPATH, 1);
     }
 
     @Test
@@ -89,4 +82,34 @@ public class LinearFileReaderTest {
     public void whenCreateNewLinearFileReader_shouldThrowFileUnreadableException() throws IOException, EmptyPageException {
         new LinearFileReader(UNREADABLE_FILEPATH);
     }
+
+    private void assertAllLines(String path, int depth) throws IOException, EmptyPageException {
+        LinearFileReader reader = new LinearFileReader(path);
+        assertTrue(reader.hasNext());
+        var lines = new HashSet<String>();
+        //        while (reader.hasNext()) {
+//            lines.add(reader.next());
+//        }
+        reader.forEachRemaining(lines::add);
+        int expectedLines = depth * 4;
+        assertEquals(expectedLines, lines.size());
+        Map<Integer, Set<String>> groups = lines.stream()
+                .collect(Collectors.groupingBy(this::getClassifier, Collectors.toSet()));
+        assertEquals(depth, groups.size());
+        groups.keySet().forEach(key -> assertSubsetLines(key, groups));
+    }
+
+    private void assertSubsetLines(int fileNumber, Map<Integer, Set<String>> groups) {
+        Set<String> lines = groups.get(fileNumber);
+        assertEquals(4, lines.size());
+        assertTrue(lines.contains("file %s - line1".formatted(fileNumber)));
+        assertTrue(lines.contains("file %s - line2".formatted(fileNumber)));
+        assertTrue(lines.contains("file %s - line3".formatted(fileNumber)));
+        assertTrue(lines.contains("file %s - line4".formatted(fileNumber)));
+    }
+
+    private Integer getClassifier(String line) {
+        return Integer.parseInt(line.substring("file ".length(), "file ".length() + 1));
+    }
+    // Improved tests infrastructure. Test of all files for LinearFileReader added.
 }

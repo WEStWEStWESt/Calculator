@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /*
@@ -33,29 +34,28 @@ import java.util.stream.Collectors;
 */
 public class LinearFileReader implements FileReader {
 
+    public static final int DEFAULT_LINES_PAGE_SIZE = 1000;
+    public static final int DEFAULT_FILES_PAGE_SIZE = 100;
+    public static final int DEFAULT_DEPTH = 4;
     private final Pager<Path> filesPager;
     private Pager<String> linesPager;
     private Queue<String> lines;
     private Queue<Path> files;
+    private int linesPageSize;
+    private int filesPageSize;
+    private int depth;
 
     public LinearFileReader(String path) throws IOException, EmptyPageException {
-        Path validPath = validatePath(path);
-        this.filesPager = new FilesPager(validPath);
-        filesPager.init();
+        this(path, DEFAULT_DEPTH, DEFAULT_LINES_PAGE_SIZE, DEFAULT_FILES_PAGE_SIZE);
     }
 
-    private Path validatePath(String path) {
-        if (path == null || path.isBlank()) {
-            throw new FileNotFoundException("File path is null or blank.");
-        }
-        Path filePath = Paths.get(path);
-        if (Files.notExists(filePath)) {
-            throw new FileNotFoundException(filePath);
-        }
-        if (!Files.isReadable(filePath)) {
-            throw new FileUnreadableException(filePath);
-        }
-        return filePath;
+    public LinearFileReader(String path, int depth, int linesPageSize, int filesPageSize) throws IOException, EmptyPageException {
+        Path validPath = validatePath(path);
+        this.filesPager = new FilesPager(validPath);
+        setValidOrDefault(depth, DEFAULT_DEPTH, this::setDepth);
+        setValidOrDefault(linesPageSize, DEFAULT_LINES_PAGE_SIZE, this::setLinesPageSize);
+        setValidOrDefault(filesPageSize, DEFAULT_FILES_PAGE_SIZE, this::setFilesPageSize);
+        filesPager.init();
     }
 
     @Override
@@ -98,36 +98,62 @@ public class LinearFileReader implements FileReader {
         }
     }
 
+    private Path validatePath(String path) {
+        if (path == null || path.isBlank()) {
+            throw new FileNotFoundException("File path is null or blank.");
+        }
+        Path filePath = Paths.get(path);
+        if (Files.notExists(filePath)) {
+            throw new FileNotFoundException(filePath);
+        }
+        if (!Files.isReadable(filePath)) {
+            throw new FileUnreadableException(filePath);
+        }
+        return filePath;
+    }
+
+    private void setValidOrDefault(int value, int defaultValue, Consumer<Integer> setter) {
+        setter.accept(value <= 0 ? defaultValue : value);
+    }
+
+    private void setDepth(int depth) {
+        this.depth = depth;
+    }
+
+    private void setLinesPageSize(int linesPageSize) {
+        this.linesPageSize = linesPageSize;
+    }
+
+    private void setFilesPageSize(int filesPageSize) {
+        this.filesPageSize = filesPageSize;
+    }
+
     private class FilesPager extends Pager<Path> {
-        public static final int LIMIT = 100;
-        public static final int DEPTH = 4;
 
         FilesPager(Path path) {
-            super(path, LIMIT);
+            super(path, filesPageSize);
         }
 
         @Override
         Queue<Path> getPage() throws IOException {
-            return Files.walk(path, DEPTH)
+            return Files.walk(path, depth)
                     .filter(Files::isRegularFile)
                     .skip(getOffset())
-                    .limit(LIMIT)
+                    .limit(filesPageSize)
                     .collect(Collectors.toCollection(LinkedList::new));
         }
     }
 
     private class LinesPager extends Pager<String> {
-        public static final int LIMIT = 1000;
-
         LinesPager(Path path) {
-            super(path, LIMIT);
+            super(path, linesPageSize);
         }
 
         @Override
         Queue<String> getPage() throws IOException {
             return Files.lines(path)
                     .skip(getOffset())
-                    .limit(LIMIT)
+                    .limit(linesPageSize)
                     .collect(Collectors.toCollection(LinkedList::new));
         }
     }

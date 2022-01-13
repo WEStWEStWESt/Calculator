@@ -87,6 +87,10 @@ public class LinearFileReader implements FileReader {
         return lines.poll();
     }
 
+    public static Builder getBuilder(){
+        return new Builder();
+    }
+
     private void resolveLinesReader(Path path) {
         linesPager = new LinesPager(path);
         try {
@@ -128,6 +132,38 @@ public class LinearFileReader implements FileReader {
         this.filesPageSize = filesPageSize;
     }
 
+    // ****************************************************************************************
+    public static class Builder {
+        private int linesPageSize;
+        private int filesPageSize;
+        private String path;
+        private int depth;
+
+        public Builder withLinesPageSize(int linesPageSize) {
+            this.linesPageSize = linesPageSize;
+            return this;
+        }
+
+        public Builder withFilesPageSize(int filesPageSize) {
+            this.filesPageSize = filesPageSize;
+            return this;
+        }
+
+        public Builder withPath(String path) {
+            this.path = path;
+            return this;
+        }
+
+        public Builder withDepth(int depth) {
+            this.depth = depth;
+            return this;
+        }
+
+        public LinearFileReader build() throws IOException, EmptyPageException {
+            return new LinearFileReader(path, depth, linesPageSize, filesPageSize);
+        }
+    }
+    // ****************************************************************************************
     private class FilesPager extends Pager<Path> {
 
         FilesPager(Path path) {

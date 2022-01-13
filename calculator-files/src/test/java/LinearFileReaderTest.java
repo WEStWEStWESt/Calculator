@@ -4,13 +4,16 @@ import com.calculator.files.exceptions.FileNotFoundException;
 import com.calculator.files.exceptions.FileUnreadableException;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.springframework.util.ReflectionUtils;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.calculator.files.LinearFileReader.DEFAULT_DEPTH;
 import static org.junit.Assert.*;
 
 public class LinearFileReaderTest {
@@ -35,8 +38,20 @@ public class LinearFileReaderTest {
      public void whenCreateNewLinearFileReader_shouldThrowEmptyPageException() throws IOException, EmptyPageException {
          new LinearFileReader(contextPath + EMPTY_DIRECTORY_FILEPATH);
      }*/
-
     //TODO check getPage() functionality which throws an IOException
+
+    @Test
+    public void whenReadAllFiles_givenNegativeDepth_shouldReturnFilesWithDefaultDepth() throws IOException, EmptyPageException {
+        LinearFileReader reader = LinearFileReader.getBuilder().withPath(ALL_FILES_FILEPATH).withDepth(-10).build();
+        assertAllLines(reader);
+        assertEquals(DEFAULT_DEPTH, getNumericField("depth", reader));
+    }
+
+    @Test
+    public void whenReadAllFiles_shouldReturnAllLinesOfTwoDepthFolders() throws IOException, EmptyPageException {
+        assertAllLines(ALL_FILES_FILEPATH, 2);
+    }
+
     @Test
     public void whenReadAllFilesStartingWithLevelOneFolder_shouldReturnAllTheFilesLines() throws IOException, EmptyPageException {
         assertAllLines(ALL_FILES_FILEPATH, 4);
@@ -83,14 +98,36 @@ public class LinearFileReaderTest {
         new LinearFileReader(UNREADABLE_FILEPATH);
     }
 
+    private int getNumericField(String fieldName, LinearFileReader reader) {
+        Field depthField = ReflectionUtils.findField(LinearFileReader.class, "depth");
+        ReflectionUtils.makeAccessible(depthField);
+        return (int) ReflectionUtils.getField(depthField, reader);
+    }
+
     private void assertAllLines(String path, int depth) throws IOException, EmptyPageException {
-        LinearFileReader reader = new LinearFileReader(path);
+        LinearFileReader reader = LinearFileReader.getBuilder()
+                .withDepth(depth)
+                .withPath(path)
+                .build();
+        assertAllLines(reader);
+    }
+
+   /* private void assertAllLines(String path, int depth, int linesPageSize, int filesPageSize) throws IOException, EmptyPageException {
+        LinearFileReader reader = LinearFileReader.getBuilder()
+                .withLinesPageSize(linesPageSize)
+                .withFilesPageSize(filesPageSize)
+                .withDepth(depth)
+                .withPath(path)
+                .build();
+        assertAllLines(reader);
+    }*/
+
+    private void assertAllLines(LinearFileReader reader) {
         assertTrue(reader.hasNext());
         var lines = new HashSet<String>();
-        //        while (reader.hasNext()) {
-//            lines.add(reader.next());
-//        }
+        /* while (reader.hasNext()) {lines.add(reader.next());} */
         reader.forEachRemaining(lines::add);
+        int depth = getNumericField("depth", reader);
         int expectedLines = depth * 4;
         assertEquals(expectedLines, lines.size());
         Map<Integer, Set<String>> groups = lines.stream()

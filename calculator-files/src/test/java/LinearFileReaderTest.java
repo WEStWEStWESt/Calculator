@@ -1,8 +1,6 @@
 import com.calculator.files.LinearFileReader;
 import com.calculator.files.exceptions.EmptyPageException;
 import com.calculator.files.exceptions.FileNotFoundException;
-import com.calculator.files.exceptions.FileUnreadableException;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.util.ReflectionUtils;
 
@@ -13,12 +11,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.calculator.files.LinearFileReader.DEFAULT_DEPTH;
+import static com.calculator.files.LinearFileReader.*;
 import static org.junit.Assert.*;
 
 public class LinearFileReaderTest {
     public static final String VALID_FILEPATH = "src/test/resources/testFileForReadingInParts.txt";
-    public static final String UNREADABLE_FILEPATH = "src/test/resources/testUnreadableFile.txt";
     public static final String NONE_EXISTED_FILEPATH = "src/test/resources/oops.txt";
     public static final String EMPTY_DIRECTORY_FILEPATH = "src/test/resources/root/empty";
     public static final String EMPTY_FILE_FILEPATH = "src/test/resources/root/empty.txt";
@@ -38,13 +35,78 @@ public class LinearFileReaderTest {
      public void whenCreateNewLinearFileReader_shouldThrowEmptyPageException() throws IOException, EmptyPageException {
          new LinearFileReader(contextPath + EMPTY_DIRECTORY_FILEPATH);
      }*/
-    //TODO check getPage() functionality which throws an IOException
+    @Test
+    public void whenReadAllFiles_givenDepth_shouldReturnFilesWithRelevantDepthValue() throws IOException, EmptyPageException {
+        assertReadAllLinesWithParameter(LinearFileReader.getBuilder()
+                        .withPath(ALL_FILES_FILEPATH)
+                        .withDepth(-10)
+                        .build(),
+                "depth",
+                DEFAULT_DEPTH,
+                "Default value should be used instead of the negative one.");
+        assertReadAllLinesWithParameter(LinearFileReader.getBuilder()
+                        .withPath(ALL_FILES_FILEPATH)
+                        .build(),
+                "depth",
+                DEFAULT_DEPTH,
+                "Default value should be used, because nothing was set.");
+        assertReadAllLinesWithParameter(LinearFileReader.getBuilder()
+                        .withPath(ALL_FILES_FILEPATH)
+                        .withDepth(5)
+                        .build(),
+                "depth",
+                5,
+                "The specified value should be used.");
+    }
 
     @Test
-    public void whenReadAllFiles_givenNegativeDepth_shouldReturnFilesWithDefaultDepth() throws IOException, EmptyPageException {
-        LinearFileReader reader = LinearFileReader.getBuilder().withPath(ALL_FILES_FILEPATH).withDepth(-10).build();
-        assertAllLines(reader);
-        assertEquals(DEFAULT_DEPTH, getNumericField("depth", reader));
+    public void whenReadAllFiles_givenFilesPageSize_shouldReturnFilesWithRelevantFilesPageSizeValue()
+            throws IOException, EmptyPageException {
+        assertReadAllLinesWithParameter(LinearFileReader.getBuilder()
+                        .withPath(ALL_FILES_FILEPATH)
+                        .withFilesPageSize(-10)
+                        .build(),
+                "filesPageSize",
+                DEFAULT_FILES_PAGE_SIZE,
+                "Default value should be used instead of the negative one.");
+        assertReadAllLinesWithParameter(LinearFileReader.getBuilder()
+                        .withPath(ALL_FILES_FILEPATH)
+                        .build(),
+                "filesPageSize",
+                DEFAULT_FILES_PAGE_SIZE,
+                "Default value should be used, because nothing was set.");
+        assertReadAllLinesWithParameter(LinearFileReader.getBuilder()
+                        .withPath(ALL_FILES_FILEPATH)
+                        .withFilesPageSize(105)
+                        .build(),
+                "filesPageSize",
+                105,
+                "The specified value should be used.");
+    }
+
+    @Test
+    public void whenReadAllFiles_givenLinesPageSize_shouldReturnFilesWithRelevantLinesPageSizeValue()
+            throws IOException, EmptyPageException {
+        assertReadAllLinesWithParameter(LinearFileReader.getBuilder()
+                        .withPath(ALL_FILES_FILEPATH)
+                        .withLinesPageSize(-10)
+                        .build(),
+                "linesPageSize",
+                DEFAULT_LINES_PAGE_SIZE,
+                "Default value should be used instead of the negative one.");
+        assertReadAllLinesWithParameter(LinearFileReader.getBuilder()
+                        .withPath(ALL_FILES_FILEPATH)
+                        .build(),
+                "linesPageSize",
+                DEFAULT_LINES_PAGE_SIZE,
+                "Default value should be used, because nothing was set.");
+        assertReadAllLinesWithParameter(LinearFileReader.getBuilder()
+                        .withPath(ALL_FILES_FILEPATH)
+                        .withLinesPageSize(1111)
+                        .build(),
+                "linesPageSize",
+                1111,
+                "The specified value should be used.");
     }
 
     @Test
@@ -53,7 +115,8 @@ public class LinearFileReaderTest {
     }
 
     @Test
-    public void whenReadAllFilesStartingWithLevelOneFolder_shouldReturnAllTheFilesLines() throws IOException, EmptyPageException {
+    public void whenReadAllFilesStartingWithLevelOneFolder_shouldReturnAllTheFilesLines()
+            throws IOException, EmptyPageException {
         assertAllLines(ALL_FILES_FILEPATH, 4);
     }
 
@@ -92,14 +155,13 @@ public class LinearFileReaderTest {
         new LinearFileReader(NONE_EXISTED_FILEPATH);
     }
 
-    @Ignore
-    @Test(expected = FileUnreadableException.class)
-    public void whenCreateNewLinearFileReader_shouldThrowFileUnreadableException() throws IOException, EmptyPageException {
-        new LinearFileReader(UNREADABLE_FILEPATH);
+    private void assertReadAllLinesWithParameter(LinearFileReader reader, String fieldName, int expectedValue, String message) {
+        assertAllLines(reader);
+        assertEquals(message, expectedValue, getNumericField(fieldName, reader));
     }
 
     private int getNumericField(String fieldName, LinearFileReader reader) {
-        Field depthField = ReflectionUtils.findField(LinearFileReader.class, "depth");
+        Field depthField = ReflectionUtils.findField(LinearFileReader.class, fieldName);
         ReflectionUtils.makeAccessible(depthField);
         return (int) ReflectionUtils.getField(depthField, reader);
     }
